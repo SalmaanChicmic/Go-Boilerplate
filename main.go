@@ -4,7 +4,7 @@ import (
 	"log"
 	"main/server"
 	"main/server/db"
-
+	"main/server/socket"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -21,14 +21,8 @@ func main() {
 
 	connection := db.InitDB()
 	db.Transfer(connection)
-
-	// defer func() {
-		
-	// 	if err := connection.DB().Close(); err != nil {
-	// 		log.Print(err)
-	// 	}
-	// }()
-
+	socketServer := socket.SocketInit()
+	defer socketServer.Close()
 	app := server.NewServer(connection)
 	server.ConfigureRoutes(app)
 
