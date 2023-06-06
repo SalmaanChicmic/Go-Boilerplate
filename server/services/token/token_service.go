@@ -21,7 +21,7 @@ type Claims struct {
 }
 
 // Generate JWT Token
-func GenerateToken(claims Claims, context *gin.Context) string {
+func GenerateToken(claims Claims, ctx *gin.Context) *string {
 	//create user claims
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -29,13 +29,14 @@ func GenerateToken(claims Claims, context *gin.Context) string {
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWTKEY")))
 
 	if err != nil {
-		response.ErrorResponse(context, utils.HTTP_UNAUTHORIZED, "Error signing token")
+		response.ShowResponse("Error signing token", utils.HTTP_UNAUTHORIZED, "Failure", nil, ctx)
+		return nil
 	}
-	return tokenString
+	return &tokenString
 }
 
 // Decode Token function
-func DecodeToken(context *gin.Context, tokenString string) (Claims, error) {
+func DecodeToken(tokenString string) (Claims, error) {
 	claims := &Claims{}
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
