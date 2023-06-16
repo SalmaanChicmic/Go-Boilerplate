@@ -41,8 +41,6 @@ func QueryExecutor(query string, data interface{}, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	// return nil if there were no errors
 	return nil
 }
 
@@ -67,6 +65,5 @@ func RawExecutor(querry string, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-	// return nil if there were no errors
 	return nil
 }
