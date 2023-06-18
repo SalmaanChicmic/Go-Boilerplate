@@ -33,7 +33,7 @@ func SendOtpService(ctx *gin.Context, contact string) (bool, *string) {
 	}
 }
 
-func VerifyOtpService(ctx *gin.Context, number string, otp string) (string, error) {
+func VerifyOtpService(ctx *gin.Context, number string, otp string) (*string, error) {
 	params := &openapi.CreateVerificationCheckParams{}
 
 	params.SetTo("+91" + number)
@@ -43,11 +43,11 @@ func VerifyOtpService(ctx *gin.Context, number string, otp string) (string, erro
 	resp, err := TwilioClient.VerifyV2.CreateVerificationCheck(os.Getenv("VERIFY_SERVICE_SID"), params)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	} else if *resp.Status == "approved" {
-		return *resp.Status, err
+		return resp.Status, err
 	}
 
-	return "", nil
+	return nil, nil
 
 }

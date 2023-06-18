@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"main/server/db"
 	"main/server/model"
-	"main/server/response"
-	"main/server/utils"
 	"os"
 	"time"
 
@@ -13,15 +11,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type Claims struct {
-	UserId string `json:"userId"`
-	Phone  string `json:"phone"`
-	Role   string `json:"role"`
-	jwt.RegisteredClaims
-}
-
 // Generate JWT Token
-func GenerateToken(claims Claims, ctx *gin.Context) *string {
+func GenerateToken(claims model.Claims, ctx *gin.Context) (*string, error) {
 	//create user claims
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -29,15 +20,14 @@ func GenerateToken(claims Claims, ctx *gin.Context) *string {
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWTKEY")))
 
 	if err != nil {
-		response.ShowResponse("Error signing token", utils.HTTP_UNAUTHORIZED, "Failure", nil, ctx)
-		return nil
+		return nil, err
 	}
-	return &tokenString
+	return &tokenString, nil
 }
 
 // Decode Token function
-func DecodeToken(tokenString string) (Claims, error) {
-	claims := &Claims{}
+func DecodeToken(tokenString string) (*model.Claims, error) {
+	claims := &model.Claims{}
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -49,26 +39,26 @@ func DecodeToken(tokenString string) (Claims, error) {
 	if err != nil || !parsedToken.Valid {
 		if claims.ExpiresAt != nil && (*claims.ExpiresAt).Before(time.Now()) {
 			var userToBeLoggedOut model.User
-			err := db.FindById(&userToBeLoggedOut, claims.UserId, "user_id")
+			err := db.FindById(&userToBeLoggedOut, claims.Id, "user_id")
 			if err != nil {
-				return *claims, fmt.Errorf("error finding user in db")
+				return nil, fmt.Errorf("error finding user in db")
 			}
-			query := "UPDATE users SET is_active = false WHERE user_id = '" + claims.UserId + "'"
+			query := "UPDATE users SET is_active = false WHERE user_id = '" + claims.Id + "'"
 			db.QueryExecutor(query, &userToBeLoggedOut)
 			fmt.Println("user to be logged out ", userToBeLoggedOut)
 
 			var userSessionToBeDeleted model.Session
-			err = db.FindById(&userSessionToBeDeleted, claims.UserId, "user_id")
+			err = db.FindById(&userSessionToBeDeleted, claims.Id, "user_id")
 			if err != nil {
-				return *claims, fmt.Errorf("error finding user in db")
+				return nil, fmt.Errorf("error finding user in db")
 			}
 
-			db.DeleteRecord(&userSessionToBeDeleted, claims.UserId, "user_id")
+			db.DeleteRecord(&userSessionToBeDeleted, claims.Id, "user_id")
 
-			return *claims, fmt.Errorf("token has expired , please proceed to login")
+			return nil, fmt.Errorf("token has expired , please proceed to login")
 		}
-		return *claims, fmt.Errorf("invalid token")
+		return nil, fmt.Errorf("invalid token")
 	}
 
-	return *claims, nil
+	return claims, nil
 }
