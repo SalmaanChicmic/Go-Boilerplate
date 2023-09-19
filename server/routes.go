@@ -17,8 +17,6 @@ func ConfigureRoutes(server *Server) {
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	server.engine.POST("/signup", handler.SignupHandler)
-
-	server.engine.POST("/signup", handler.SignupHandler)
 	server.engine.POST("/login", handler.LoginHandler)
 
 }

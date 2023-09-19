@@ -22,45 +22,53 @@ func AlreadyExists(data string) bool {
 func SignupService(ctx *gin.Context, input *request.AuthRequest) {
 
 	var user model.User
-	//check the credentials if already exists
 
+	//check if the newPassword and password are the same
+	if input.NewPassword != input.Password {
+		response.ShowResponse(utils.PASSWORD_NOT_MATCH, utils.HTTP_BAD_REQUEST, utils.FAILURE, "", ctx)
+		return
+	}
+	//check the credentials if already exists
 	if AlreadyExists(input.Email) {
 
 		fmt.Println("email already exists", input.Email)
-		response.ShowResponse("email already exists", utils.HTTP_BAD_REQUEST, "Bad Request", "", ctx)
+		response.ShowResponse(utils.EMAIL_EXISTS, utils.HTTP_BAD_REQUEST, utils.FAILURE, "", ctx)
 		return
 	}
-
 
 	user.Email = input.Email
 	user.FullName = input.FullName
 	//encrypt the password then store in db
 
-	encryptedPassword, _ := utils.HashPassword(input.Password)
+	encryptedPassword, err := utils.HashPassword(input.Password)
+	if err != nil {
+		response.ShowResponse(err.Error(), utils.HTTP_BAD_REQUEST, utils.FAILURE, nil, ctx)
+		return
+	}
 
-	user.Password = encryptedPassword
+	user.Password = *encryptedPassword
 
-	err := db.CreateRecord(&user)
+	err = db.CreateRecord(&user)
 	if err != nil {
 
-		response.ShowResponse(err.Error(), utils.HTTP_INTERNAL_SERVER_ERROR, "server error", "", ctx)
+		response.ShowResponse(err.Error(), utils.HTTP_INTERNAL_SERVER_ERROR, utils.FAILURE, "", ctx)
 		return
 	} else {
 
-		response.ShowResponse("Signup success", utils.HTTP_OK, "Success", "", ctx)
+		response.ShowResponse(utils.SIGNUP_SUCCESS, utils.HTTP_OK, utils.SUCCESS, "", ctx)
 	}
 }
 
 func LoginService(ctx *gin.Context, input *request.AuthRequest) {
-	
+
 	var user *model.User
-	var userClaims token.Claims
+	var userClaims model.Claims
 
 	//check if the user exists in db or not
 	if !(db.RecordExist("users", input.Email, "email")) {
 		//return
 
-		response.ShowResponse("user doesn't exist", 400, "Bad request", "", ctx)
+		response.ShowResponse(utils.USER_NOT_FOUND, utils.HTTP_BAD_REQUEST, utils.FAILURE, "", ctx)
 		return
 	}
 
@@ -71,23 +79,26 @@ func LoginService(ctx *gin.Context, input *request.AuthRequest) {
 	if !utils.CheckPasswordHash(input.Password, user.Password) {
 		//RETURN
 
-		response.ShowResponse("Password Doesn't Match", 401, "Unauthorized", "", ctx)
+		response.ShowResponse(utils.UNAUTHORIZED, utils.HTTP_UNAUTHORIZED, utils.FAILURE, "", ctx)
 		return
 	}
 
 	//if password is correct ,provide a token to the user
 
-
-	userClaims.UserId = user.UserId
-	Token := token.GenerateToken(userClaims, ctx)
+	userClaims.Id = user.UserId
+	Token, err := token.GenerateToken(userClaims)
+	if err != nil {
+		response.ShowResponse(err.Error(), utils.HTTP_INTERNAL_SERVER_ERROR, utils.FAILURE, nil, ctx)
+		return
+	}
 
 	//create a cookie, store the value of the token in the http cookie
-	cookie := &http.Cookie{Name: "Auth", Value: Token}
+	cookie := &http.Cookie{Name: "Auth", Value: *Token}
 
 	http.SetCookie(ctx.Writer, cookie)
 
 	//show a success response to login attempt
 
-	response.ShowResponse("Login Success", utils.HTTP_OK, "Success", "", ctx)
+	response.ShowResponse(utils.LOGIN_SUCCESS, utils.HTTP_OK, utils.SUCCESS, "", ctx)
 
 }
