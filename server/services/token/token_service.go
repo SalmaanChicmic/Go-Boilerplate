@@ -11,8 +11,14 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type Claims struct {
+	UserId string `json:"userId"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
+}
+
 // Generate JWT Token
-func GenerateToken(claims model.Claims, ctx *gin.Context) (*string, error) {
+func GenerateToken(claims Claims, ctx *gin.Context) *string {
 	//create user claims
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -20,9 +26,10 @@ func GenerateToken(claims model.Claims, ctx *gin.Context) (*string, error) {
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWTKEY")))
 
 	if err != nil {
-		return nil, err
+		response.ShowResponse("Error signing token", utils.HTTP_UNAUTHORIZED, "Failure", nil, ctx)
+		return nil
 	}
-	return &tokenString, nil
+	return &tokenString
 }
 
 // Decode Token function

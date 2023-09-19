@@ -18,4 +18,7 @@ func ConfigureRoutes(server *Server) {
 
 	server.engine.POST("/signup", handler.SignupHandler)
 
+	server.engine.POST("/signup", handler.SignupHandler)
+	server.engine.POST("/login", handler.LoginHandler)
+
 }

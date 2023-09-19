@@ -1,80 +1,93 @@
 package authentication
 
 import (
+	"fmt"
 	"main/server/db"
 	"main/server/model"
 	"main/server/request"
 	"main/server/response"
+	"main/server/services/token"
+	"main/server/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func AlreadyExists(data string) bool {
 
-	return db.RecordExist("user", data, "email")
+	return db.RecordExist("users", data, "email")
 
-}
-
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }
 
 func SignupService(ctx *gin.Context, input *request.AuthRequest) {
 
+	var user model.User
 	//check the credentials if already exists
 
 	if AlreadyExists(input.Email) {
-		//return
+
+		fmt.Println("email already exists", input.Email)
+		response.ShowResponse("email already exists", utils.HTTP_BAD_REQUEST, "Bad Request", "", ctx)
 		return
 	}
 
-	var user *model.User
 
 	user.Email = input.Email
+	user.FullName = input.FullName
 	//encrypt the password then store in db
 
-	encryptedPassword,_:=HashPassword(input.Password)
+	encryptedPassword, _ := utils.HashPassword(input.Password)
 
-	user.Password=encryptedPassword
+	user.Password = encryptedPassword
 
-
-	err:=db.CreateRecord(&user)
+	err := db.CreateRecord(&user)
 	if err != nil {
 
-		response.ShowResponse(err.Error(),500,"server error","",ctx)
-		return 
+		response.ShowResponse(err.Error(), utils.HTTP_INTERNAL_SERVER_ERROR, "server error", "", ctx)
+		return
+	} else {
+
+		response.ShowResponse("Signup success", utils.HTTP_OK, "Success", "", ctx)
 	}
 }
 
+func LoginService(ctx *gin.Context, input *request.AuthRequest) {
+	
+	var user *model.User
+	var userClaims token.Claims
 
-func LoginService(ctx *gin.Context,input *request.AuthRequest){
-
-
-	//check if the user exists in db or not 
-
-	if !(db.RecordExist("user",input.Email,"email")){
+	//check if the user exists in db or not
+	if !(db.RecordExist("users", input.Email, "email")) {
 		//return
 
-		response.ShowResponse("user doesn't exist",400,"Bad request","",ctx)
+		response.ShowResponse("user doesn't exist", 400, "Bad request", "", ctx)
 		return
 	}
 
-	//get the encrypted password from the db
+	//get the encrypted password from the db and then compare
+	db.FindById(&user, input.Email, "email")
+	fmt.Println("user:", user)
+
+	if !utils.CheckPasswordHash(input.Password, user.Password) {
+		//RETURN
+
+		response.ShowResponse("Password Doesn't Match", 401, "Unauthorized", "", ctx)
+		return
+	}
+
+	//if password is correct ,provide a token to the user
 
 
-	var user *model.User
-	db.FindById(user, input.Email,"email")
+	userClaims.UserId = user.UserId
+	Token := token.GenerateToken(userClaims, ctx)
 
+	//create a cookie, store the value of the token in the http cookie
+	cookie := &http.Cookie{Name: "Auth", Value: Token}
 
+	http.SetCookie(ctx.Writer, cookie)
 
+	//show a success response to login attempt
 
-
+	response.ShowResponse("Login Success", utils.HTTP_OK, "Success", "", ctx)
 
 }
