@@ -6,10 +6,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func IsPassValid(password string) error {
+func IsPassValid(password string) (bool, error) {
 
 	if len(password) < 8 {
-		return errors.New("password is too short")
+		return false, errors.New("password is too short")
 
 	}
 	hasUpperCase := false
@@ -32,21 +32,21 @@ func IsPassValid(password string) error {
 	}
 
 	if !hasUpperCase {
-		return errors.New("password do not contain upperCase Character")
+		return false, errors.New("password do not contain upperCase Character")
 	}
 
 	if !hasLowerCase {
-		return errors.New("password do not contain LowerCase Character")
+		return false, errors.New("password do not contain LowerCase Character")
 	}
 
 	if !hasNumbers {
-		return errors.New("password do not contain any numbers")
+		return false, errors.New("password do not contain any numbers")
 	}
 
 	if !hasSpecial {
-		return errors.New("password do not contain any special character")
+		return false, errors.New("password do not contain any special character")
 	}
-	return nil
+	return true, nil
 }
 
 func HashPassword(password string) (*string, error) {
