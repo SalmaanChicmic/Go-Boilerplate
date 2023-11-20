@@ -4,10 +4,7 @@ go 1.13
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-<<<<<<< Updated upstream
-=======
 	github.com/aws/aws-sdk-go v1.47.13
->>>>>>> Stashed changes
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-sql-driver/mysql v1.5.0 // indirect

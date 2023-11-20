@@ -1,7 +1,6 @@
 package awssns
 
 import (
-	"fmt"
 	"main/server/request"
 	"main/server/response"
 	"main/server/utils"
@@ -30,7 +29,7 @@ func SendSMS(ctx *gin.Context, reqBody request.AwsTextMessagingRequest) {
 	// Create SNS service
 	svc := sns.New(sess)
 
-	fmt.Println("svc", svc.Endpoint)
+	// fmt.Println("svc", svc.Endpoint)
 
 	// Pass the phone number and message.
 	params := &sns.PublishInput{
@@ -46,7 +45,7 @@ func SendSMS(ctx *gin.Context, reqBody request.AwsTextMessagingRequest) {
 		return
 	}
 
-	fmt.Println(resp) // print the response data.
+	// fmt.Println(resp) // print the response data.
 
 	response.ShowResponse("Message sent sucessfully", utils.HTTP_OK, utils.SUCCESS, resp, ctx)
 
