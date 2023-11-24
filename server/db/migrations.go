@@ -1,27 +1,30 @@
 package db
 
 import (
+	"fmt"
+	"main/server/model"
+
 	"gorm.io/gorm"
 )
 
 func AutoMigrateDatabase(db *gorm.DB) {
 
-	// var dbVersion model.DbVersion
-	// err := db.First(&dbVersion).Error
-	// if err != nil {
-	// 	fmt.Println("error: ", err)
-	// }
-	// fmt.Println("db version is:", dbVersion.Version)
-	// if dbVersion.Version < 1 {
-	// 	err := db.AutoMigrate(&model.User{}, &model.GymEmp{}, &model.Payment{}, &model.Subscription{}, &model.Membership{}, &model.Equipment{}, &model.UAttendence{}, &model.EmpAttendence{}, &model.EmpTypes{} , &model.BlackListedToken{})
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	db.Create(&model.DbVersion{
-	// 		Version: 1,
-	// 	})
-	// 	dbVersion.Version = 1
-	// }
+	var dbVersion model.DbVersion
+	err := db.First(&dbVersion).Error
+	if err != nil {
+		fmt.Println("error: ", err)
+	}
+	fmt.Println("db version is:", dbVersion.Version)
+	if dbVersion.Version < 1 {
+		err := db.AutoMigrate(&model.User{})
+		if err != nil {
+			panic(err)
+		}
+		db.Create(&model.DbVersion{
+			Version: 1,
+		})
+		dbVersion.Version = 1
+	}
 	// if dbVersion.Version < 2 {
 	// 	err := db.AutoMigrate(&model.Slot{})
 

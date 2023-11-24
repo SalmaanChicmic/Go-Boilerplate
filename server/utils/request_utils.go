@@ -17,6 +17,5 @@ func RequestDecoding(ctx *gin.Context, data interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -7,12 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 // Generate JWT Token
-func GenerateToken(claims model.Claims, ctx *gin.Context) (*string, error) {
+func GenerateToken(claims model.Claims) (*string, error) {
 	//create user claims
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
