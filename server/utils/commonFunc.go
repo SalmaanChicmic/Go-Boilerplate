@@ -3,7 +3,9 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"os"
 
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -48,6 +50,36 @@ func IsPassValid(password string) (bool, error) {
 		return false, errors.New("password do not contain any special character")
 	}
 	return true, nil
+}
+
+func DecodeToken(tokenString string) (*jwt.MapClaims, error) {
+
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// You need to provide the key to validate the signature
+		return []byte(os.Getenv("JWT_KEY")), nil
+	})
+
+	// Check for errors
+	if err != nil {
+		fmt.Println("Error parsing token:", err)
+		return nil, err
+	}
+
+	// Check if the token is valid
+	if !token.Valid {
+		fmt.Println("Token is not valid")
+		return nil, err
+	}
+
+	// Access claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		fmt.Println("Error accessing claims")
+		return nil, err
+	}
+
+	return &claims, nil
 }
 
 func HashPassword(password string) (*string, error) {

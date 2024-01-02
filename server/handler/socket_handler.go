@@ -2,6 +2,8 @@ package handler
 
 import (
 	"fmt"
+	"main/server/gateway"
+	"main/server/services/chat"
 
 	socketio "github.com/googollee/go-socket.io"
 )
@@ -38,5 +40,7 @@ func SocketHandler(server *socketio.Server) {
 	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		fmt.Println("closed", reason)
 	})
+
+	server.OnEvent("/", "createRoom", gateway.SocketAuthMiddleware(chat.RoomCreate))
 
 }

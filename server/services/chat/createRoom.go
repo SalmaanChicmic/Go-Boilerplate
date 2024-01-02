@@ -5,12 +5,13 @@ import (
 	"main/server/db"
 	"main/server/model"
 	"main/server/request"
+	"main/server/response"
 	"main/server/services/token"
 
 	socketio "github.com/googollee/go-socket.io"
 )
 
-func RoomCreate(s socketio.Conn, data map[string]string) {
+func RoomCreate(s socketio.Conn, data map[string]interface{}) {
 	// fmt.Println("inside room creation process...")
 	// Get the user ID from the query params
 	var room model.Room
@@ -28,7 +29,13 @@ func RoomCreate(s socketio.Conn, data map[string]string) {
 	// utils.SocketServerInstance.BroadcastToNamespace("/","reply",data["message"])
 
 	room.Creator = claims.Id
-	room.Name = data["name"]
+	roomName, ok := data["name"].(string)
+	if !ok {
+		fmt.Println("not ok")
+		response.SocketResponse("error in type assertion", 400, "failure", nil, "createRoom", s)
+		return
+	}
+	room.Name = roomName
 	db.CreateRecord(&room)
 
 	s.Join(room.RoomId)
