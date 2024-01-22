@@ -13,21 +13,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//checks whether the user present in the database with the same email address
 func AlreadyExists(data string) bool {
 
 	return db.RecordExist("users", data, "email")
 
 }
 
-func SignupService(ctx *gin.Context, input *request.AuthRequest) {
+func Signup(ctx *gin.Context, input *request.AuthRequest) {
 
 	var user model.User
 
-	//check if the newPassword and password are the same
-	if input.NewPassword != input.Password {
-		response.ShowResponse(utils.PASSWORD_NOT_MATCH, utils.HTTP_BAD_REQUEST, utils.FAILURE, "", ctx)
-		return
-	}
 	//check the credentials if already exists
 	if AlreadyExists(input.Email) {
 
@@ -59,7 +55,7 @@ func SignupService(ctx *gin.Context, input *request.AuthRequest) {
 	}
 }
 
-func LoginService(ctx *gin.Context, input *request.AuthRequest) {
+func Login(ctx *gin.Context, input *request.AuthRequest) {
 
 	var user *model.User
 	var userClaims model.Claims

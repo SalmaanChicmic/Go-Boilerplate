@@ -25,27 +25,5 @@ func AutoMigrateDatabase(db *gorm.DB) {
 		})
 		dbVersion.Version = 1
 	}
-	// if dbVersion.Version < 2 {
-	// 	err := db.AutoMigrate(&model.Slot{})
-
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	db.Where("version=?", dbVersion.Version).Updates(&model.DbVersion{
-	// 		Version: 2,
-	// 	})
-	// 	dbVersion.Version = 2
-
-	// }
-	// if dbVersion.Version < 3 {
-	// 	err := db.AutoMigrate(&model.Credential{})
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	db.Where("version=?", dbVersion.Version).Updates(&model.DbVersion{
-	// 		Version: 3,
-	// 	})
-	// 	dbVersion.Version = 3
-	// }
 
 }

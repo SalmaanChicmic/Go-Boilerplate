@@ -13,6 +13,10 @@ func IsPassValid(password string) error {
 		return errors.New("password is too short")
 
 	}
+	if len(password) > 256 {
+		return errors.New("password is too long")
+
+	}
 	hasUpperCase := false
 	hasLowerCase := false
 	hasNumbers := false
