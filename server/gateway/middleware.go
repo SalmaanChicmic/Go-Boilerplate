@@ -1,9 +1,6 @@
-package gateway
+package middleware
 
 import (
-	// "fmt"
-	// "gym/server/response"
-
 	"github.com/gin-gonic/gin"
 )
 

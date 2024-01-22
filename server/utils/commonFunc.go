@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -10,6 +11,10 @@ func IsPassValid(password string) (bool, error) {
 
 	if len(password) < 8 {
 		return false, errors.New("password is too short")
+
+	}
+	if len(password) > 256 {
+		return errors.New("password is too long")
 
 	}
 	hasUpperCase := false
@@ -56,4 +61,12 @@ func HashPassword(password string) (*string, error) {
 	}
 	hashedPassword := string(bs)
 	return &hashedPassword, nil
+}
+
+func CheckPasswordHash(password, hash string) bool {
+
+	fmt.Println("inside password check ")
+	fmt.Println("password hash", password, hash)
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
